@@ -35,5 +35,8 @@ router.put('/profile', userController.updateUserProfile);
 // Route for getting analytics for a specific detail
 router.get('/details/:detailId/analytics', userController.getDetailAnalytics);
 
+// Route for getting user profile by username
+router.get('/profile/:username', userController.getProfileByUsername);
+
 
 module.exports = router;

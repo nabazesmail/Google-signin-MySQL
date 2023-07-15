@@ -16,14 +16,14 @@ class UserController {
       const {
         email,
         password,
-        name,
+        username,
         bio,
         profile_image,
       } = req.body;
       const user = await User.create({
         email,
         password,
-        name,
+        username,
         bio,
         profile_image,
       });
@@ -317,6 +317,64 @@ class UserController {
       };
 
       res.json(analyticsResponse);
+    } catch (error) {
+      res.status(400).json({
+        error: error.message
+      });
+    }
+  }
+
+  async getProfileByUsername(req, res) {
+    try {
+      const {
+        username
+      } = req.params;
+
+      // Find the user by username
+      const user = await User.findOne({
+        where: {
+          username
+        }
+      });
+
+      // If user not found, return error
+      if (!user) {
+        return res.status(404).json({
+          error: 'User not found'
+        });
+      }
+
+      // Retrieve the user's profile information
+      const {
+        email,
+        bio,
+        profile_image
+      } = user;
+
+      // Find the details associated with the user
+      const details = await Details.findAll({
+        where: {
+          userId: user.id
+        }
+      });
+
+      // Construct the profile response
+      const profileResponse = {
+        success: true,
+        message: 'Profile retrieved successfully',
+        user: {
+          email,
+          bio,
+          profile_image
+        },
+        links: details.map(detail => ({
+          title: detail.title,
+          url: detail.url,
+          description: detail.description
+        }))
+      };
+
+      res.json(profileResponse);
     } catch (error) {
       res.status(400).json({
         error: error.message
