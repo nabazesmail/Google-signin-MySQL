@@ -1,0 +1,34 @@
+# Ignore compiled files
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.tar.bz2
+
+# Ignore log files and temp files
+*.log
+*.swp
+*~
+*.bak
+*.tmp
+
+# Ignore IDE and editor files
+/.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Ignore system files and folders
+.DS_Store
+Thumbs.db
+node_modules/
+__pycache__/
+venv/
+*.env
+
+# Ignore configuration files
+config.py
+config.json
