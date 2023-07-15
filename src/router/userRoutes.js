@@ -21,16 +21,19 @@ router.post('/details', userController.addDetails);
 router.get('/details/:userId', userController.getDetails);
 
 // Route for updating information in the Details table based on user's ID and details ID
-router.put('/details/:userId/:detailsId', userController.updateDetails);
+router.put('/details/:detailsId', userController.updateDetails);
 
 // Route for deleting a detail from the Details table based on user's ID and details ID
-router.delete('/details/:userId/:detailsId', userController.deleteDetails);
+router.delete('/details/:detailsId', userController.deleteDetails);
 
 // Route for getting user profile
 router.get('/profile', userController.getProfile);
 
 // Route for updating user's profile based on JWT token
 router.put('/profile', userController.updateUserProfile);
+
+// Route for getting analytics for a specific detail
+router.get('/details/:detailId/analytics', userController.getDetailAnalytics);
 
 
 module.exports = router;

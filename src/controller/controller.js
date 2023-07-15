@@ -151,10 +151,8 @@ class UserController {
   async updateDetails(req, res) {
     try {
       const {
-        userId,
         detailsId
       } = req.params;
-
       const {
         title,
         url,
@@ -165,7 +163,6 @@ class UserController {
       let details = await Details.findOne({
         where: {
           id: detailsId,
-          userId
         }
       });
 
@@ -194,25 +191,13 @@ class UserController {
   async deleteDetails(req, res) {
     try {
       const {
-        userId,
         detailsId
       } = req.params;
 
-      // Check if the user exists
-      const user = await User.findByPk(userId);
-
-      // If user not found, return error
-      if (!user) {
-        return res.status(404).json({
-          error: 'User not found'
-        });
-      }
-
-      // Find the detail to delete
-      const detail = await Details.findOne({
+      // Find the details based on the user ID and details ID
+      let detail = await Details.findOne({
         where: {
           id: detailsId,
-          userId
         }
       });
 
@@ -295,6 +280,50 @@ class UserController {
       });
     }
   }
+
+  async getDetailAnalytics(req, res) {
+    try {
+      const {
+        detailId
+      } = req.params;
+
+      // Find the detail by ID
+      const detail = await Details.findByPk(detailId);
+
+      // If detail not found, return error
+      if (!detail) {
+        return res.status(404).json({
+          error: 'Detail not found'
+        });
+      }
+
+      // Increment the clicks count for the detail
+      detail.clicks += 1;
+
+      // Increment the visits count for the detail
+      detail.visits += 1;
+
+      // Save the changes to the detail
+      await detail.save();
+
+      // Construct the analytics response
+      const analyticsResponse = {
+        success: true,
+        message: 'Analytics retrieved successfully',
+        analytics: {
+          clicks: detail.clicks,
+          visits: detail.visits
+        }
+      };
+
+      res.json(analyticsResponse);
+    } catch (error) {
+      res.status(400).json({
+        error: error.message
+      });
+    }
+  }
+
 
 }
 
