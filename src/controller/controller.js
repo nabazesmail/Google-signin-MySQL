@@ -24,32 +24,26 @@ class UserController {
         username,
         bio
       } = req.body;
-
-      // Check if a file is attached in the request
-      if (!req.file) {
-        // Handle the case when no file is attached
-        // Perform user registration logic without the file upload
-        const user = await User.create({
-          email,
-          password,
-          username,
-          bio,
-        });
-
-        return res.status(201).json(user);
-      }
+      const file = req.file;
 
       // Perform user registration logic (e.g., validation, creating user in the database)
 
-      // Upload the image to S3
-      await s3Upload(req.file);
+      let fileName = null;
+      if (file) {
+        // Upload the image to S3
+        await s3Upload(file);
 
-      // Save the user in the database (excluding image URL for simplicity)
+        // Access the uploaded file name
+        fileName = file.originalname;
+      }
+
+      // Save the user in the database
       const user = await User.create({
         email,
         password,
         username,
         bio,
+        profile_image: fileName,
       });
 
       res.status(201).json(user);
@@ -59,6 +53,7 @@ class UserController {
       });
     }
   }
+
 
   async login(req, res) {
     try {
@@ -144,8 +139,6 @@ class UserController {
       });
     }
   }
-
-
 
   async getDetails(req, res) {
     try {
