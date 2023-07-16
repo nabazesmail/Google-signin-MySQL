@@ -2,11 +2,14 @@ const express = require('express');
 const UserController = require('../controller/controller');
 const userController = new UserController();
 const {authenticate} = require('../middleware/authentication');
+const upload = require('../config/multerConfig');
+const { s3Upload }=require('../config/awsService.js');
 const router = express.Router();
 
 
 // Route for registering user
-router.post('/register',userController.createUser);
+router.post("/register", upload.single("file"), userController.registerUser);
+
 
 // Route for logging in
 router.post('/login', userController.login);

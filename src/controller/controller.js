@@ -9,24 +9,49 @@ const {
   generateToken
 } = require('../utils/tokenUtils');
 const bcrypt = require('bcrypt');
+const {
+  s3Upload
+} = require('../config/awsService.js');
+
 
 class UserController {
-  async createUser(req, res) {
+
+  async registerUser(req, res) {
     try {
       const {
         email,
         password,
         username,
-        bio,
-        profile_image,
+        bio
       } = req.body;
+
+      // Check if a file is attached in the request
+      if (!req.file) {
+        // Handle the case when no file is attached
+        // Perform user registration logic without the file upload
+        const user = await User.create({
+          email,
+          password,
+          username,
+          bio,
+        });
+
+        return res.status(201).json(user);
+      }
+
+      // Perform user registration logic (e.g., validation, creating user in the database)
+
+      // Upload the image to S3
+      await s3Upload(req.file);
+
+      // Save the user in the database (excluding image URL for simplicity)
       const user = await User.create({
         email,
         password,
         username,
         bio,
-        profile_image,
       });
+
       res.status(201).json(user);
     } catch (error) {
       res.status(400).json({
