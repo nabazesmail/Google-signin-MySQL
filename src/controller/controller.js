@@ -145,6 +145,8 @@ class UserController {
     }
   }
 
+
+
   async getDetails(req, res) {
     try {
       const {
