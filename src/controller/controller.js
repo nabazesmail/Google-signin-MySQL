@@ -54,7 +54,6 @@ class UserController {
     }
   }
 
-
   async login(req, res) {
     try {
       const {
@@ -86,13 +85,19 @@ class UserController {
         });
       }
 
-      // Generate a JWT token
+      // Generate the full path and full name of the profile image in the S3 bucket
+      const fileName = user.profile_image;
+      const imagePath = `https://ninja-bucket66.s3.us-east-1.amazonaws.com/uploads/${fileName}`;
+
+      // Generate a JWT token with the full path and full name of the profile image
       const token = generateToken({
         id: user.id,
         name: user.name,
         email: user.email,
         bio: user.bio,
-        profileImage: user.profile_image
+        profileImage: {
+          path: imagePath, // Full path to the profile image
+        }
       });
 
       res.json({
@@ -243,7 +248,24 @@ class UserController {
 
   async getProfile(req, res) {
     const userInfo = getUserInfoFromToken(req.headers.authorization.split(' ')[1]);
-    res.json(userInfo);
+
+    // Extract the file name from the profile image
+    const fileName = userInfo.profileImage;
+
+    // Construct the profile response with the full path to the profile picture
+    const profileResponse = {
+      success: true,
+      message: 'Profile retrieved successfully',
+      user: {
+        id: userInfo.id,
+        name: userInfo.name,
+        email: userInfo.email,
+        bio: userInfo.bio,
+        profileImage: fileName
+      }
+    };
+
+    res.json(profileResponse);
   }
 
   async updateUserProfile(req, res) {
@@ -401,7 +423,6 @@ class UserController {
       });
     }
   }
-
 
 }
 

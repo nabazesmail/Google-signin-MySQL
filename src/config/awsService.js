@@ -2,9 +2,6 @@ const {
   S3Client,
   PutObjectCommand
 } = require('@aws-sdk/client-s3');
-const {
-  v4: uuidv4
-} = require('uuid');
 require('dotenv').config();
 
 // Configure the AWS SDK with your access keys and region
@@ -19,7 +16,7 @@ const s3Client = new S3Client({
 const s3Upload = async (file) => {
   const params = {
     Bucket: process.env.BUCKET_NAME,
-    Key: `uploads/${uuidv4()}-${file.originalname}`,
+    Key: `uploads/${file.originalname}`, // Use the original name of the file as the Key
     Body: file.buffer,
   };
 
