@@ -6,7 +6,7 @@ const upload = require('../config/multerConfig');
 const router = express.Router();
 
 // Route for registering user
-router.post("/register", upload.single("file"), userController.registerUser);
+router.post("/register", upload.single("profile_image"), userController.registerUser);
 
 // Route for logging in
 router.post('/login', userController.login);
@@ -18,7 +18,7 @@ router.use(authenticate);
 router.post('/details', userController.addDetails);
 
 // Route for getting information from the Details table based on user's ID
-router.get('/details/:userId', userController.getDetails);
+router.get('/details', userController.getDetails);
 
 // Route for updating information in the Details table based on user's ID and details ID
 router.put('/details/:detailsId', userController.updateDetails);
@@ -29,11 +29,11 @@ router.delete('/details/:detailsId', userController.deleteDetails);
 // Route for getting user profile
 router.get('/profile', userController.getProfile);
 
-// Route for updating user's profile based on JWT token
-router.put('/profile', userController.updateUserProfile);
+// Update user profile with uploaded profile image
+router.put('/profile', upload.single('profile_image'), userController.updateUserProfile);
 
 // Route for getting analytics for a specific detail
-router.get('/details/:detailId/analytics', userController.getDetailAnalytics);
+router.get('/details/:detailsId/analytics', authenticate, userController.getDetailAnalytics);
 
 // Route for getting user profile by username
 router.get('/profile/:username', userController.getProfileByUsername);

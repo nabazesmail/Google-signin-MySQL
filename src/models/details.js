@@ -21,10 +21,20 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    clicks: { // Add a field to hold clicks count
+      type: DataTypes.INTEGER,
+      defaultValue: 0, // Initialize clicks count to 0
+    },
+    visits: { // Add a field to hold visits count
+      type: DataTypes.INTEGER,
+      defaultValue: 0, // Initialize visits count to 0
+    },
   });
 
   Details.associate = (models) => {
-    Details.belongsTo(models.User, { foreignKey: 'userId' });
+    Details.belongsTo(models.User, {
+      foreignKey: 'userId'
+    });
   };
 
   return Details;

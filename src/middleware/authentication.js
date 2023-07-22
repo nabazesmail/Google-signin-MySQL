@@ -29,7 +29,7 @@ const getUserInfoFromToken = (token) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       return {
         id:decoded.id,
-          name:decoded.name,
+          username:decoded.username,
           email: decoded.email,
           bio:decoded.bio,
           profileImage: decoded.profileImage

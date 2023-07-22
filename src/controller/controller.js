@@ -112,15 +112,21 @@ class UserController {
 
   async addDetails(req, res) {
     try {
+      const token = req.headers.authorization.split(' ')[1];
+      const userInfo = getUserInfoFromToken(token);
+
       const {
-        userId,
+        id
+      } = userInfo; // Extract user ID from the decoded token
+
+      const {
         title,
         url,
         description
       } = req.body;
 
       // Check if the user exists
-      const user = await User.findByPk(userId);
+      const user = await User.findByPk(id);
 
       // If user not found, return error
       if (!user) {
@@ -129,15 +135,8 @@ class UserController {
         });
       }
 
-      // Create details record for the user
-      const details = await Details.create({
-        userId,
-        title,
-        url,
-        description
-      });
 
-      res.status(201).json(details);
+      res.status(201).json("details added successfully");
     } catch (error) {
       res.status(400).json({
         error: error.message
@@ -147,28 +146,32 @@ class UserController {
 
   async getDetails(req, res) {
     try {
-      const {
-        userId
-      } = req.params;
+      const token = req.headers.authorization.split(' ')[1];
+      const userInfo = getUserInfoFromToken(token);
 
-      // Find the details based on the user ID
+      const {
+        id
+      } = userInfo; // Extract user ID from the decoded token
+
+      // Find the details based on the user ID and only include the specified fields
       const details = await Details.findAll({
         where: {
-          userId
-        }
+          userId: id, // Use "userId" instead of "id" to filter by the correct field
+        },
+        attributes: ['title', 'url', 'description'], // Include only these fields
       });
 
       // If details not found, return error
-      if (!details) {
+      if (!details || details.length === 0) {
         return res.status(404).json({
-          error: 'Details not found'
+          error: 'Details not found',
         });
       }
 
       res.json(details);
     } catch (error) {
       res.status(400).json({
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -205,7 +208,7 @@ class UserController {
         description
       });
 
-      res.json(details);
+      res.json("selected detail has been updated successfully!");
     } catch (error) {
       res.status(400).json({
         error: error.message
@@ -254,12 +257,10 @@ class UserController {
 
     // Construct the profile response with the full path to the profile picture
     const profileResponse = {
-      success: true,
-      message: 'Profile retrieved successfully',
       user: {
         id: userInfo.id,
-        name: userInfo.name,
         email: userInfo.email,
+        name: userInfo.name,
         bio: userInfo.bio,
         profileImage: fileName
       }
@@ -277,11 +278,10 @@ class UserController {
         id
       } = userInfo; // Extract user ID from the decoded token
       const {
-        name,
-        email,
-        bio,
-        profileImage
+        username,
+        bio
       } = req.body;
+      const file = req.file; // Get the uploaded profile image file
 
       // Find the user in the database
       const user = await User.findByPk(id);
@@ -293,11 +293,18 @@ class UserController {
         });
       }
 
+      // Upload the new profile image if provided
+      let fileName = user.profile_image; // Default to the current profile image
+      if (file) {
+        // Upload the new image to S3
+        await s3Upload(file);
+        fileName = file.originalname;
+      }
+
       // Update the user's profile
-      user.name = name;
-      user.email = email;
+      user.username = username;
       user.bio = bio;
-      user.profileImage = profileImage;
+      user.profile_image = fileName;
 
       await user.save();
 
@@ -307,18 +314,18 @@ class UserController {
         message: 'Profile updated successfully',
         user: {
           id: user.id,
-          name: user.name,
-          email: user.email,
+          username: user.username,
           bio: user.bio,
-          profileImage: user.profileImage,
-          profileLink: `https://example.com/profile/${user.name.toLowerCase().replace(/\s+/g, '_')}`
-        }
+          profileImage: {
+            path: `https://ninja-bucket66.s3.us-east-1.amazonaws.com/uploads/${fileName}`, // Full path to the new profile image
+          },
+        },
       };
 
       res.json(updatedProfile);
     } catch (error) {
       res.status(400).json({
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -326,42 +333,33 @@ class UserController {
   async getDetailAnalytics(req, res) {
     try {
       const {
-        detailId
+        detailsId
       } = req.params;
 
       // Find the detail by ID
-      const detail = await Details.findByPk(detailId);
+      const detail = await Details.findByPk(detailsId);
 
       // If detail not found, return error
       if (!detail) {
         return res.status(404).json({
-          error: 'Detail not found'
+          error: 'Detail not found',
         });
       }
 
-      // Increment the clicks count for the detail
-      detail.clicks += 1;
-
-      // Increment the visits count for the detail
-      detail.visits += 1;
-
-      // Save the changes to the detail
-      await detail.save();
-
-      // Construct the analytics response
+      // Construct the analytics response with the stored clicks and visits count
       const analyticsResponse = {
         success: true,
         message: 'Analytics retrieved successfully',
         analytics: {
           clicks: detail.clicks,
-          visits: detail.visits
-        }
+          visits: detail.visits,
+        },
       };
 
       res.json(analyticsResponse);
     } catch (error) {
       res.status(400).json({
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -407,7 +405,9 @@ class UserController {
         user: {
           email,
           bio,
-          profile_image
+          profileImage: {
+            path: `https://ninja-bucket66.s3.us-east-1.amazonaws.com/uploads/${profile_image}`, // Full path to the profile image
+          },
         },
         links: details.map(detail => ({
           title: detail.title,
