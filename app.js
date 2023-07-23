@@ -3,11 +3,13 @@ require('dotenv').config();
 const express=require('express');
 const bodyParser = require('body-parser');
 const db = require("./src/models");
+const cors = require('cors');
 
 const userRoutes = require('./src/router/userRoutes');
 
-
 const app=express();
+app.use(cors()); // Use the cors middleware before defining routes
+
 app.use(express.json());
 app.use(bodyParser.json());
 

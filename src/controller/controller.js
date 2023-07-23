@@ -115,15 +115,9 @@ class UserController {
       const token = req.headers.authorization.split(' ')[1];
       const userInfo = getUserInfoFromToken(token);
 
-      const {
-        id
-      } = userInfo; // Extract user ID from the decoded token
+      const { id } = userInfo; // Extract user ID from the decoded token
 
-      const {
-        title,
-        url,
-        description
-      } = req.body;
+      const { title, url, description } = req.body;
 
       // Check if the user exists
       const user = await User.findByPk(id);
@@ -131,15 +125,22 @@ class UserController {
       // If user not found, return error
       if (!user) {
         return res.status(404).json({
-          error: 'User not found'
+          error: 'User not found',
         });
       }
 
+      // Create details record for the user
+      const details = await Details.create({
+        userId: id, // Associate the details with the user's ID
+        title,
+        url,
+        description,
+      });
 
-      res.status(201).json("details added successfully");
+      res.status(201).json("choni"); // Return the details object that was added to the database
     } catch (error) {
       res.status(400).json({
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -149,9 +150,7 @@ class UserController {
       const token = req.headers.authorization.split(' ')[1];
       const userInfo = getUserInfoFromToken(token);
 
-      const {
-        id
-      } = userInfo; // Extract user ID from the decoded token
+      const { id } = userInfo; // Extract user ID from the decoded token
 
       // Find the details based on the user ID and only include the specified fields
       const details = await Details.findAll({
@@ -164,17 +163,23 @@ class UserController {
       // If details not found, return error
       if (!details || details.length === 0) {
         return res.status(404).json({
+          ok: false,
           error: 'Details not found',
         });
       }
 
-      res.json(details);
+      res.json({
+        ok: true,
+        details, // Include the details in the response
+      });
     } catch (error) {
       res.status(400).json({
+        ok: false,
         error: error.message,
       });
     }
   }
+
 
   async updateDetails(req, res) {
     try {
