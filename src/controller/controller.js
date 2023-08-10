@@ -19,8 +19,11 @@ const auth = require('../middleware/auth');
 
 class UserController {
 
+
   async googleAuth(req, res, next) {
-    passport.authenticate('google', { scope: ['email', 'profile'] })(req, res, next);
+    passport.authenticate('google', {
+      scope: ['email', 'profile']
+    })(req, res, next);
   }
 
   async googleCallback(req, res, next) {
@@ -33,12 +36,16 @@ class UserController {
 
   async getToken(req, res) {
     const token = req.user.token; // Access the token from the user object
-    res.json({ token });
+    res.json({
+      ok: true,
+      token
+    });
   }
 
   async googleFailure(req, res) {
     res.status(401).json({
-      error: 'Google authentication failed',
+      ok: false,
+      error: 'Google authentication failed'
     });
   }
 
@@ -72,9 +79,13 @@ class UserController {
         profile_image: fileName,
       });
 
-      res.status(201).json(user);
+      res.status(201).json({
+        ok: true,
+        user
+      });
     } catch (error) {
       res.status(400).json({
+        ok: false,
         error: error.message
       });
     }
@@ -91,12 +102,13 @@ class UserController {
       const user = await User.findOne({
         where: {
           email
-        }
+        },
       });
 
       // If user not found, return error
       if (!user) {
         return res.status(404).json({
+          ok: false,
           error: 'User not found'
         });
       }
@@ -107,6 +119,7 @@ class UserController {
       // If passwords don't match, return error
       if (!isPasswordValid) {
         return res.status(401).json({
+          ok: false,
           error: 'Invalid password'
         });
       }
@@ -123,14 +136,16 @@ class UserController {
         bio: user.bio,
         profileImage: {
           path: imagePath, // Full path to the profile image
-        }
+        },
       });
 
       res.json({
+        ok: true,
         token
       });
     } catch (error) {
       res.status(400).json({
+        ok: false,
         error: error.message
       });
     }
@@ -141,9 +156,15 @@ class UserController {
       const token = req.headers.authorization.split(' ')[1];
       const userInfo = getUserInfoFromToken(token);
 
-      const { id } = userInfo; // Extract user ID from the decoded token
+      const {
+        id
+      } = userInfo; // Extract user ID from the decoded token
 
-      const { title, url, description } = req.body;
+      const {
+        title,
+        url,
+        description
+      } = req.body;
 
       // Check if the user exists
       const user = await User.findByPk(id);
@@ -151,7 +172,8 @@ class UserController {
       // If user not found, return error
       if (!user) {
         return res.status(404).json({
-          error: 'User not found',
+          ok: false,
+          error: 'User not found'
         });
       }
 
@@ -163,10 +185,15 @@ class UserController {
         description,
       });
 
-      res.status(201).json("Details added successfully"); // Return the details object that was added to the database
+      res.status(201).json({
+        ok: true,
+        message: 'Details added successfully',
+        details
+      });
     } catch (error) {
       res.status(400).json({
-        error: error.message,
+        ok: false,
+        error: error.message
       });
     }
   }
@@ -176,7 +203,9 @@ class UserController {
       const token = req.headers.authorization.split(' ')[1];
       const userInfo = getUserInfoFromToken(token);
 
-      const { id } = userInfo; // Extract user ID from the decoded token
+      const {
+        id
+      } = userInfo; // Extract user ID from the decoded token
 
       // Find the details based on the user ID and only include the specified fields
       const details = await Details.findAll({
@@ -190,22 +219,21 @@ class UserController {
       if (!details || details.length === 0) {
         return res.status(404).json({
           ok: false,
-          error: 'Details not found',
+          error: 'Details not found'
         });
       }
 
       res.json({
         ok: true,
-        details, // Include the details in the response
-      });
+        details
+      }); // Include the details in the response
     } catch (error) {
       res.status(400).json({
         ok: false,
-        error: error.message,
+        error: error.message
       });
     }
   }
-
 
   async updateDetails(req, res) {
     try {
@@ -222,12 +250,13 @@ class UserController {
       let details = await Details.findOne({
         where: {
           id: detailsId,
-        }
+        },
       });
 
       // If details not found, return error
       if (!details) {
         return res.status(404).json({
+          ok: false,
           error: 'Details not found'
         });
       }
@@ -236,12 +265,16 @@ class UserController {
       details = await details.update({
         title,
         url,
-        description
+        description,
       });
 
-      res.json("selected detail has been updated successfully!");
+      res.json({
+        ok: true,
+        message: 'Selected detail has been updated successfully!'
+      });
     } catch (error) {
       res.status(400).json({
+        ok: false,
         error: error.message
       });
     }
@@ -257,12 +290,13 @@ class UserController {
       let detail = await Details.findOne({
         where: {
           id: detailsId,
-        }
+        },
       });
 
       // If detail not found, return error
       if (!detail) {
         return res.status(404).json({
+          ok: false,
           error: 'Detail not found'
         });
       }
@@ -271,10 +305,12 @@ class UserController {
       await detail.destroy();
 
       res.json({
+        ok: true,
         message: 'Detail deleted successfully'
       });
     } catch (error) {
       res.status(400).json({
+        ok: false,
         error: error.message
       });
     }
@@ -293,11 +329,14 @@ class UserController {
         email: userInfo.email,
         name: userInfo.name,
         bio: userInfo.bio,
-        profileImage: fileName
-      }
+        profileImage: fileName,
+      },
     };
 
-    res.json(profileResponse);
+    res.json({
+      ok: true,
+      ...profileResponse
+    });
   }
 
   async updateUserProfile(req, res) {
@@ -320,6 +359,7 @@ class UserController {
       // If user not found, return error
       if (!user) {
         return res.status(404).json({
+          ok: false,
           error: 'User not found'
         });
       }
@@ -356,7 +396,8 @@ class UserController {
       res.json(updatedProfile);
     } catch (error) {
       res.status(400).json({
-        error: error.message,
+        ok: false,
+        error: error.message
       });
     }
   }
@@ -373,7 +414,8 @@ class UserController {
       // If detail not found, return error
       if (!detail) {
         return res.status(404).json({
-          error: 'Detail not found',
+          ok: false,
+          error: 'Detail not found'
         });
       }
 
@@ -390,7 +432,8 @@ class UserController {
       res.json(analyticsResponse);
     } catch (error) {
       res.status(400).json({
-        error: error.message,
+        ok: false,
+        error: error.message
       });
     }
   }
@@ -404,13 +447,14 @@ class UserController {
       // Find the user by username
       const user = await User.findOne({
         where: {
-          username
-        }
+          username,
+        },
       });
 
       // If user not found, return error
       if (!user) {
         return res.status(404).json({
+          ok: false,
           error: 'User not found'
         });
       }
@@ -425,8 +469,8 @@ class UserController {
       // Find the details associated with the user
       const details = await Details.findAll({
         where: {
-          userId: user.id
-        }
+          userId: user.id,
+        },
       });
 
       // Construct the profile response
@@ -440,16 +484,17 @@ class UserController {
             path: `https://ninja-bucket66.s3.us-east-1.amazonaws.com/uploads/${profile_image}`, // Full path to the profile image
           },
         },
-        links: details.map(detail => ({
+        links: details.map((detail) => ({
           title: detail.title,
           url: detail.url,
-          description: detail.description
-        }))
+          description: detail.description,
+        })),
       };
 
       res.json(profileResponse);
     } catch (error) {
       res.status(400).json({
+        ok: false,
         error: error.message
       });
     }
