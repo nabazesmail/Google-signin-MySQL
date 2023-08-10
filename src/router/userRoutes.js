@@ -10,7 +10,7 @@ router.get('/auth/google', userController.googleAuth);
 
 router.get('/auth/google/callback', userController.googleCallback);
 
-router.get('/hi', userController.hi);
+router.get('/token', userController.getToken);
 
 router.get('/auth/google/failure', userController.googleFailure);
 

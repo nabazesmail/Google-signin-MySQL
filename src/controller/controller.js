@@ -25,13 +25,15 @@ class UserController {
 
   async googleCallback(req, res, next) {
     passport.authenticate('google', {
-      successRedirect: '/hi', // Replace with your success route
+      // Return the token directly in the response, no need to redirect
+      successRedirect: '/token',
       failureRedirect: '/auth/google/failure',
     })(req, res, next);
   }
 
-  async hi(req, res) {
-    res.send('Hi');
+  async getToken(req, res) {
+    const token = req.user.token; // Access the token from the user object
+    res.json({ token });
   }
 
   async googleFailure(req, res) {
@@ -39,53 +41,6 @@ class UserController {
       error: 'Google authentication failed',
     });
   }
-
-  // async registerUser(req, res) {
-  //   try {
-  //     // Extract user information from Google profile
-  //     const googleProfile = req.user;
-  //     const { id, displayName, emails } = googleProfile;
-
-  //     // Check if the user already exists in the database
-  //     const existingUser = await User.findOne({
-  //       where: { googleId: id },
-  //     });
-
-  //     if (existingUser) {
-  //       // User already exists, generate token and send response
-  //       const token = generateToken({
-  //         id: existingUser.id,
-  //         name: existingUser.username, // Assuming you have a username field
-  //         email: emails[0].value,
-  //         // Other user information...
-  //       });
-
-  //       return res.json({ token });
-  //     }
-
-  //     // User doesn't exist, create a new user
-  //     const user = await User.create({
-  //       googleId: id,
-  //       email: emails[0].value,
-  //       // Other user information...
-  //     });
-
-  //     // Generate token and send response
-  //     const token = generateToken({
-  //       id: user.id,
-  //       name: user.username,
-  //       email: user.email,
-  //       // Other user information...
-  //     });
-
-  //     res.json({ token });
-  //   } catch (error) {
-  //     res.status(400).json({
-  //       error: error.message,
-  //     });
-  //   }
-  // }
-
 
   async registerUser(req, res) {
     try {

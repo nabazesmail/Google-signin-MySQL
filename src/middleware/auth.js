@@ -48,7 +48,6 @@ passport.use(
         });
 
         return done(null, {
-          user,
           token
         });
       } catch (error) {
