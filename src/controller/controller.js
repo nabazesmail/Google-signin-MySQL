@@ -12,9 +12,80 @@ const bcrypt = require('bcrypt');
 const {
   s3Upload
 } = require('../config/awsService.js');
+const passport = require('passport');
+const auth = require('../middleware/auth');
+
 
 
 class UserController {
+
+  async googleAuth(req, res, next) {
+    passport.authenticate('google', { scope: ['email', 'profile'] })(req, res, next);
+  }
+
+  async googleCallback(req, res, next) {
+    passport.authenticate('google', {
+      successRedirect: '/hi', // Replace with your success route
+      failureRedirect: '/auth/google/failure',
+    })(req, res, next);
+  }
+
+  async hi(req, res) {
+    res.send('Hi');
+  }
+
+  async googleFailure(req, res) {
+    res.status(401).json({
+      error: 'Google authentication failed',
+    });
+  }
+
+  // async registerUser(req, res) {
+  //   try {
+  //     // Extract user information from Google profile
+  //     const googleProfile = req.user;
+  //     const { id, displayName, emails } = googleProfile;
+
+  //     // Check if the user already exists in the database
+  //     const existingUser = await User.findOne({
+  //       where: { googleId: id },
+  //     });
+
+  //     if (existingUser) {
+  //       // User already exists, generate token and send response
+  //       const token = generateToken({
+  //         id: existingUser.id,
+  //         name: existingUser.username, // Assuming you have a username field
+  //         email: emails[0].value,
+  //         // Other user information...
+  //       });
+
+  //       return res.json({ token });
+  //     }
+
+  //     // User doesn't exist, create a new user
+  //     const user = await User.create({
+  //       googleId: id,
+  //       email: emails[0].value,
+  //       // Other user information...
+  //     });
+
+  //     // Generate token and send response
+  //     const token = generateToken({
+  //       id: user.id,
+  //       name: user.username,
+  //       email: user.email,
+  //       // Other user information...
+  //     });
+
+  //     res.json({ token });
+  //   } catch (error) {
+  //     res.status(400).json({
+  //       error: error.message,
+  //     });
+  //   }
+  // }
+
 
   async registerUser(req, res) {
     try {
@@ -137,7 +208,7 @@ class UserController {
         description,
       });
 
-      res.status(201).json("choni"); // Return the details object that was added to the database
+      res.status(201).json("Details added successfully"); // Return the details object that was added to the database
     } catch (error) {
       res.status(400).json({
         error: error.message,

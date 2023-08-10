@@ -5,6 +5,16 @@ const {authenticate} = require('../middleware/authentication');
 const upload = require('../config/multerConfig');
 const router = express.Router();
 
+// Google OAuth routes
+router.get('/auth/google', userController.googleAuth);
+
+router.get('/auth/google/callback', userController.googleCallback);
+
+router.get('/hi', userController.hi);
+
+router.get('/auth/google/failure', userController.googleFailure);
+
+
 // Route for registering user
 router.post("/register", upload.single("profile_image"), userController.registerUser);
 
